@@ -20,7 +20,7 @@ class Downmark
   def html_to_markdown(node)
     markdown = ""
 
-    node.children.each do |child|
+    node.children.each.with_index do |child, _index|
       case child.name
       when "a"
         markdown += "[#{child.text.strip}](#{child["href"]})" if child["href"]
@@ -30,8 +30,15 @@ class Downmark
         markdown += "#{html_to_markdown(child).strip}\n\n"
       when "span", "u"
         markdown += " #{html_to_markdown(child).strip} "
+      when "li"
+        if child.parent.name == "ol"
+          value = child["value"].nil? ? child.parent.css("li").index(child) + 1 : child["value"]
+          markdown += "#{value}. #{html_to_markdown(child).strip}\n"
+        elsif child.parent.name == "ul"
+          markdown += "* #{html_to_markdown(child).strip}\n"
+        end
       when "ul"
-        child.css("li").each { |li| markdown += "* #{html_to_markdown(li).strip.strip}\n" }
+        markdown += "#{html_to_markdown(child).strip}\n"
         markdown += "\n\n"
       when "ol"
         child.css("li").each_with_index do |li, index|
