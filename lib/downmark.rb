@@ -26,7 +26,7 @@ class Downmark
         markdown += "[#{child.text.strip}](#{child["href"]})" if child["href"]
       when "br"
         markdown += "\n"
-      when "div", "article", "p", "body", "html", "main"
+      when "div", "article", "p", "body", "html", "main", "form"
         markdown += "#{html_to_markdown(child).strip}\n\n"
       when "span", "u"
         markdown += " #{html_to_markdown(child).strip} "
