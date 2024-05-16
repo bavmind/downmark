@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    downmark (0.1.0)
+    downmark (0.1.1)
       nokogiri
 
 GEM
