@@ -12,7 +12,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_basic_page
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -20,7 +20,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_basic_table_with_header
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -28,7 +28,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_basic_table_with_columns
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -36,7 +36,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_basic_table_with_columns_and_no_headers
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content, skip_header: true).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -44,7 +44,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_list
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -52,7 +52,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_list_with_nested_list
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -60,7 +60,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_lists
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -68,7 +68,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_numbered_lists
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -76,7 +76,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_headlines
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -84,7 +84,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_links
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end
@@ -92,7 +92,7 @@ class TestDownmark < Minitest::Test
   def test_that_it_converts_mixed
     html_content = read_fixture(__method__, "html.html")
     expected_md_content = read_fixture(__method__, "markdown.md")
-    actual_md_content = Downmark.new(html_content).convert
+    actual_md_content = Downmark.new.convert(html_content)
 
     assert_equal expected_md_content, actual_md_content
   end

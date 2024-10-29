@@ -1,15 +1,15 @@
 # turndown_service.rb
 require "nokogiri"
-require_relative "utilities"
-require_relative "node"
-require_relative "rules"
+require_relative "downmark/utilities"
+require_relative "downmark/node"
+require_relative "downmark/rules"
 
-class TurndownService
+class Downmark
   def initialize(options = {})
     defaults = {
-      heading_style: "setext",
+      heading_style: "atx",
       hr: "* * *",
-      bullet_list_marker: "*",
+      bullet_list_marker: "-",
       code_block_style: "indented",
       fence: "```",
       em_delimiter: "_",
@@ -33,7 +33,7 @@ class TurndownService
     @rules = Rules.new(@options)
   end
 
-  def turndown(input)
+  def convert(input)
     raise TypeError, "#{input} is not a String or Nokogiri node" unless can_convert?(input)
 
     return "" if input.strip.empty?

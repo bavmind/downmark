@@ -245,7 +245,7 @@ class Rules
                          # Adjust fence size if needed
                          fence_char = options[:fence][0]
                          fence_size = 3
-                         fence_in_code_regex = Regexp.new("^" + Regexp.escape(fence_char) + "{3,}", Regexp::MULTILINE)
+                         fence_in_code_regex = Regexp.new("^#{Regexp.escape(fence_char)}{3,}", Regexp::MULTILINE)
 
                          code.scan(fence_in_code_regex) do |match|
                            fence_size = [fence_size, match.length + 1].max
