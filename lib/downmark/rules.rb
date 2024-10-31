@@ -302,7 +302,7 @@ class Rules
                          row = "| " + cells.join(" | ") + " |"
 
                          if is_header && !has_thead_parent
-                           separator = "| " + cells.map { |cell| "-" * [3, cell.length].max }.join(" | ") + " |"
+                            separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
                            "\n#{row}\n#{separator}"
                          else
                            "\n#{row}"
