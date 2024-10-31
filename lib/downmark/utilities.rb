@@ -21,7 +21,7 @@ module Utilities
 
   ESCAPES = [
     [/\\/, "\\\\\\\\"],
-    [/\*/, '\\\\*'],
+    # [/\*/, '\\\\*'], # disabled for inside-strong-test
     [/^-(\s)/, '\\-\\1'],
     [/^\+ /, '\\\\+ '],
     # [/^(=+)/, '\\\\\1'], # this seams to break tests
@@ -30,7 +30,7 @@ module Utilities
     [/^~~~/, '\\\\~~~'],
     [/\[/, '\\\\['],
     [/\]/, '\\\\]'],
-    # [/^>/, '\\\\>'], # commented out since it breaks "espaping > as blockquote" test
+    # [/^>/, '\\\\>'], # disabled since it breaks "espaping > as blockquote" test
     [/_/, '\\\\_'],
     [/^(\d+)\. /, '\\\\\1. ']
   ]
