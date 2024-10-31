@@ -23,7 +23,7 @@ module Utilities
     [/\\/, "\\\\\\\\"],
     # [/\*/, '\\\\*'], # disabled for inside-strong-test
     [/^-(\s)/, '\\-\\1'],
-    [/^\+ /, '\\\\+ '],
+    # [/^\+ /, '\\\\+ '], disabled for escaping-ul-markdown-+
     # [/^(=+)/, '\\\\\1'], # this seams to break tests
     [/^(\#{1,6}) /, '\\\\\1 '],
     [/`/, '\\\\`'],
