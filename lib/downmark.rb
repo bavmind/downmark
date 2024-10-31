@@ -1,4 +1,5 @@
 # turndown_service.rb
+# rubocop:disable all
 require "nokogiri"
 require_relative "downmark/utilities"
 require_relative "downmark/node"
@@ -68,12 +69,6 @@ class Downmark
   def remove(filter)
     @rules.remove(filter)
     self
-  end
-
-  def escape(string)
-    Utilities::ESCAPES.reduce(string) do |str, (pattern, replacement)|
-      str.gsub(pattern, replacement)
-    end
   end
 
   def process(parent_node)

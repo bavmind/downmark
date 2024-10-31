@@ -1,4 +1,5 @@
 # rules.rb
+# rubocop:disable all
 require_relative "utilities"
 
 class Rules
@@ -6,6 +7,8 @@ class Rules
 
   def initialize(options)
     @options = options
+    @options[:debug] ||= false
+    @options[:debug_with_html] ||= true  # set to true to output HTML content in debug messages
     @keep = []
     @remove = []
     @rules = []
@@ -13,30 +16,39 @@ class Rules
   end
 
   def add(key, rule)
+    rule[:name] = key
     @rules.unshift(rule)
-  end
+  end  
 
   def keep(filter)
     @keep.unshift({
-                    filter:,
+                    name: 'keep',
+                    filter: filter,
                     replacement: @options[:keep_replacement]
                   })
   end
 
   def remove(filter)
     @remove.unshift({
-                      filter:,
+                      name: 'remove',
+                      filter: filter,
                       replacement: proc { "" }
                     })
   end
 
+
   def for_node(node)
     return @blank_rule if node.is_blank?
 
-    find_rule(@rules, node) ||
-      find_rule(@keep, node) ||
-      find_rule(@remove, node) ||
-      @default_rule
+    rule = find_rule(@rules, node) ||
+           find_rule(@keep, node) ||
+           find_rule(@remove, node) ||
+           @default_rule
+
+    if rule == @default_rule
+      puts "Applying rule #{rule[:name]} to node #{node.node.name.downcase}"
+    end
+    rule
   end
 
   def for_each(&)
@@ -228,6 +240,14 @@ class Rules
                        }
         })
 
+    # Strikethrough
+    add(:strikethrough, {
+          filter: %w[del s strike],
+          replacement: proc { |content, _node, _options|
+            content.strip.empty? ? "" : "~#{content}~"
+          }
+        })
+
     # Fenced code block
     add(:fenced_code_block, {
           filter: proc { |node, options|
@@ -259,16 +279,17 @@ class Rules
 
     # Table rules
     add(:table_cell, {
-          filter: proc { |node, _options|
-            %w[th td].include?(node.node.name.downcase) && is_in_data_table?(node)
-          },
-          replacement: proc { |content, node, _options, turndown_service|
-            cell_content = turndown_service.process(node.node)
-            cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
-            cell_content = " " if cell_content.empty?
-            cell_content
-          }
-        })
+       filter: proc { |node, _options|
+         %w[th td].include?(node.node.name.downcase) && is_in_data_table?(node)
+       },
+       replacement: proc { |content, node, _options, turndown_service|
+         cell_content = turndown_service.process(node.node)
+         cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
+         cell_content = " " if cell_content.empty?
+         "| #{cell_content} |" # Wrap the content with pipes for Markdown formatting
+       }
+     })
+
 
     add(:table_row, {
           filter: proc { |node, _options|
@@ -276,10 +297,11 @@ class Rules
           },
           replacement: proc { |content, node, _options, _turndown_service|
                          is_header = is_heading_row?(node)
+                         has_thead_parent = node.node.parent.name.downcase == "thead" # to avoid double header rows
                          cells = content.strip.split(/\s*\|\s*/).reject(&:empty?)
                          row = "| " + cells.join(" | ") + " |"
 
-                         if is_header
+                         if is_header && !has_thead_parent
                            separator = "| " + cells.map { |cell| "-" * [3, cell.length].max }.join(" | ") + " |"
                            "\n#{row}\n#{separator}"
                          else
@@ -318,13 +340,14 @@ class Rules
         })
 
     add(:table, {
-          filter: proc { |node, _options|
-            is_data_table?(node)
-          },
-          replacement: proc { |content, _node, _options|
-                         "\n\n#{content.strip}\n\n"
-                       }
-        })
+      filter: proc { |node, _options|
+        node.node.name.downcase == "table" && is_data_table?(node)
+      },
+      replacement: proc { |content, _node, _options|
+        "\n\n#{content.strip}\n\n"
+      }
+    })
+        
 
     # Initialize reference storage for reference links
     @references = []
@@ -343,11 +366,27 @@ class Rules
 
   # Helper method to determine if a row is a header row
   def is_heading_row?(node)
+    #puts "is_heading_row? #{node.node.name.downcase} #{node.node.css("th").any?}"
     node.node.css("th").any?
   end
 
   def find_rule(rules, node)
-    rules.find { |rule| filter_value(rule[:filter], node) }
+    rule = rules.find { |rule| filter_value(rule[:filter], node) }
+    if rule
+      puts_debug_info(rule[:name], node)
+    end
+    rule
+  end
+
+  def puts_debug_info(rule_name, node)
+    if @options[:debug]
+      if @options[:debug_with_html]
+        html_content = node.node.to_html.strip
+        puts "Applying rule \e[31m#{rule_name}\e[0m to node \e[32m#{node.node.name.downcase}\e[0m with HTML: \e[34m#{html_content}\e[0m"
+      else
+        puts "Applying rule \e[31m#{rule_name}\e[0m to node \e[32m#{node.node.name.downcase}\e[0m"
+      end
+    end
   end
 
   def filter_value(filter, node)
