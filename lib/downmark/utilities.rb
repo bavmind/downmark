@@ -31,7 +31,7 @@ module Utilities
     [/\[/, '\\\\['],
     [/\]/, '\\\\]'],
     # [/^>/, '\\\\>'], # disabled since it breaks "espaping > as blockquote" test
-    [/_/, '\\\\_'],
+    # [/_/, '\\\\_'], # disable for name escaping-strong-markdown-with-_
     [/^(\d+)\. /, '\\\\\1. ']
   ]
 
