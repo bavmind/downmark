@@ -279,36 +279,45 @@ class Rules
 
     # Table rules
     add(:table_cell, {
-       filter: proc { |node, _options|
-         %w[th td].include?(node.node.name.downcase) && is_in_data_table?(node)
-       },
-       replacement: proc { |content, node, _options, turndown_service|
-         cell_content = turndown_service.process(node.node)
-         cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
-         cell_content = " " if cell_content.empty?
-         "| #{cell_content} |" # Wrap the content with pipes for Markdown formatting
-       }
-     })
+      filter: proc { |node, _options|
+        %w[th td].include?(node.node.name.downcase) && is_in_data_table?(node)
+      },
+      replacement: proc { |content, node, _options, turndown_service|
+        cell_content = turndown_service.process(node.node)
+        cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
+        cell_content = " " if cell_content.empty?
+        cell_content
+      }
+    })
 
 
     add(:table_row, {
-          filter: proc { |node, _options|
-            node.node.name.downcase == "tr" && is_in_data_table?(node)
-          },
-          replacement: proc { |content, node, _options, _turndown_service|
-                         is_header = is_heading_row?(node)
-                         has_thead_parent = node.node.parent.name.downcase == "thead" # to avoid double header rows
-                         cells = content.strip.split(/\s*\|\s*/).reject(&:empty?)
-                         row = "| " + cells.join(" | ") + " |"
+      filter: proc { |node, _options|
+        node.node.name.downcase == "tr" && is_in_data_table?(node)
+      },
+      replacement: proc { |content, node, _options, _turndown_service|
+        is_header = is_heading_row?(node)
+        has_thead_parent = node.node.parent.name.downcase == "thead"
+        cells = content.strip.split(/\n/).reject(&:empty?)
+        row = "| " + cells.join(" | ") + " |"
 
-                         if is_header && !has_thead_parent
-                            separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
-                           "\n#{row}\n#{separator}"
-                         else
-                           "\n#{row}"
-                         end
-                       }
-        })
+        if is_header && !has_thead_parent
+          if !@separator_added
+            separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
+            @separator_added = true
+            "\n#{row}\n#{separator}"
+          else
+            # For subsequent headers, add the row without a separator
+            "\n#{row}"
+          end
+        else
+          "\n#{row}"
+        end
+      }
+    })
+
+
+
 
     add(:table_header, {
           filter: "thead",
@@ -333,21 +342,23 @@ class Rules
         })
 
     add(:table_body, {
-          filter: "tbody",
-          replacement: proc { |content, _node, _options|
-                         content
-                       }
-        })
+      filter: "tbody",
+      replacement: proc { |content, _node, _options|
+        "\n#{content.strip}\n"
+      }
+    })
+        
 
     add(:table, {
       filter: proc { |node, _options|
         node.node.name.downcase == "table" && is_data_table?(node)
       },
       replacement: proc { |content, _node, _options|
+        @separator_added = false
         "\n\n#{content.strip}\n\n"
       }
     })
-        
+
 
     # Initialize reference storage for reference links
     @references = []
@@ -367,7 +378,7 @@ class Rules
   # Helper method to determine if a row is a header row
   def is_heading_row?(node)
     #puts "is_heading_row? #{node.node.name.downcase} #{node.node.css("th").any?}"
-    node.node.css("th").any?
+    node.node.element_children.all? { |child| child.name.downcase == 'th' }
   end
 
   def find_rule(rules, node)
