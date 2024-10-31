@@ -196,7 +196,7 @@ class Rules
     add(:strong, {
           filter: %w[strong b],
           replacement: proc { |content, _node, options|
-            content.strip.empty? ? "" : "#{options[:strong_delimiter]}#{content}#{options[:strong_delimiter]}"
+            content.strip.empty? ? "" : "#{options[:strong_delimiter]}#{content}#{options[:strong_delimiter]} "
           }
         })
 
