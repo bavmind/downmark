@@ -201,18 +201,26 @@ class Rules
         })
 
     add(:code, {
-          filter: proc { |node, _options|
-            node.node.name.downcase == "code" &&
-              node.node.parent.name.downcase != "pre"
-          },
-          replacement: proc { |content, _node, _options|
-            content = content.strip.gsub(/\r?\n|\r/, " ")
-            delimiter = "`"
-            matches = content.scan(/`+/)
-            delimiter += "`" while matches.include?(delimiter)
-            "#{delimiter}#{content}#{delimiter}"
-          }
-        })
+      filter: proc { |node, _options|
+        node.node.name.downcase == "code" &&
+          node.node.parent.name.downcase != "pre"
+      },
+      replacement: proc { |content, _node, _options|
+        content = content.strip.gsub(/\r?\n|\r/, " ")
+        delimiter = "`"
+        matches = content.scan(/`+/)
+        delimiter += "`" while matches.include?(delimiter)
+
+        if content.start_with?("`")
+          "#{delimiter} #{content} #{delimiter}"
+        else
+          "#{delimiter}#{content}#{delimiter}"
+        end
+      }
+    })
+
+        
+ 
 
     add(:image, {
           filter: "img",
