@@ -54,6 +54,8 @@ class Node
     leading_ws = content[/\A([ \t\r\n]*)(\s*)/, 1] || ""
     trailing_ws = content[/(\s*)([ \t\r\n]*)\z/, 2] || ""
 
+    # Debug whitspaces
+    # { leading: "LEADING_WS", trailing: "TRAILING_WS" }
     { leading: leading_ws, trailing: trailing_ws }
   end
 end
