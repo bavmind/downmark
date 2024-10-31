@@ -169,6 +169,13 @@ class Downmark
 
     return unless element.children.any? && !is_pre.call(element)
 
+    if @options[:debug]
+      puts "Collapsing whitespace for #{element.name}"
+      puts " ㄴis_block: #{is_block.call(element)}"
+      puts " ㄴis_void: #{is_void.call(element)}"
+      puts " ㄴis_pre: #{is_pre.call(element)}"
+    end
+
     prev_text = nil
     keep_leading_ws = false
 
