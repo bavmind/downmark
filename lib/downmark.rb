@@ -10,7 +10,7 @@ class Downmark
     defaults = {
       heading_style: "atx",
       hr: "* * *",
-      bullet_list_marker: "-",
+      bullet_list_marker: "*",
       code_block_style: "indented",
       fence: "```",
       em_delimiter: "_",
