@@ -46,7 +46,7 @@ class Rules
            @default_rule
 
     if rule == @default_rule
-      puts "Applying rule #{rule[:name]} to node #{node.node.name.downcase}"
+      puts "Applying default rule to node #{node.node.name.downcase}"
     end
     rule
   end
