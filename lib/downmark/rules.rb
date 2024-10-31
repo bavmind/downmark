@@ -159,7 +159,7 @@ class Rules
               node.node["href"]
           },
           replacement: proc { |content, node, _options|
-            href = node.node["href"].to_s.gsub(/[()]/, '\\\\\0')
+            href = node.node["href"].to_s
             title = node.node["title"] ? " \"#{node.node["title"].gsub('"', '\"')}\"" : ""
             "[#{content}](#{href}#{title})"
           }
