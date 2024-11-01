@@ -17,7 +17,7 @@ class Downmark
       strong_delimiter: "**",
       link_style: "inlined",
       link_reference_style: "full",
-      br: "  ",
+      br: "",
       preformatted_code: false,
       blank_replacement: proc { |_content, node|
         node.is_block? ? "\n\n" : ""
