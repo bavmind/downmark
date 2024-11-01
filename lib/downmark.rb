@@ -147,7 +147,7 @@ class Downmark
   end
 
   def join_lines(output, replacement)
-    puts "Joining lines for output: #{output} and replacement: #{replacement}" if @options[:debug]
+    #puts "Joining lines for output: #{output} and replacement: #{replacement}" if @options[:debug]
     s1 = Utilities.trim_trailing_newlines(output)
     s2 = Utilities.trim_leading_newlines(replacement)
     nls = [output.length - s1.length, replacement.length - s2.length].max
