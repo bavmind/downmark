@@ -24,7 +24,9 @@ html_content = File.read(html_file_path)
 # Convert the HTML content to Markdown
 system("ruby", "-Ilib:test", "test/test_downmark.rb", "--name", test_name)
 puts "--------------------------------------------------"
-puts "Output:"
+puts "Process:"
 downmark = Downmark.new(debug: true)
 markdown_content = downmark.convert(html_content)
+puts "--------------------------------------------------"
+puts "final markdown:"
 puts markdown_content
