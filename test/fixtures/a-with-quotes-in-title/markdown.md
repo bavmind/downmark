@@ -1,1 +1,1 @@
-[An anchor](http://example.com ""hello"")
+[An anchor](http://example.com "\"hello\"")
