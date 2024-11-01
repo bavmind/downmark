@@ -28,8 +28,8 @@ module Utilities
     [/^(\#{1,6}) /, '\\\\\1 '],
     [/`/, '\\\\`'],
     # [/^~~~/, '\\\\~~~'], # disabled for escaping-code-blocks
-    [/\[/, '\\\\['],
-    [/\]/, '\\\\]'],
+    # [/\[/, '\\\\['], # disable to fix escaping-[]
+    # [/\]/, '\\\\]'], # disable to fix escaping-[]
     # [/^>/, '\\\\>'], # disabled since it breaks "espaping > as blockquote" test
     # [/_/, '\\\\_'], # disable for name escaping-strong-markdown-with-_
     [/^(\d+)\. /, '\\\\\1. ']
