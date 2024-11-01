@@ -8,7 +8,7 @@ require_relative "downmark/rules"
 class Downmark
   def initialize(options = {})
     defaults = {
-      heading_style: "setext",
+      heading_style: "atx",
       hr: "* * *",
       bullet_list_marker: "*",
       code_block_style: "indented",
