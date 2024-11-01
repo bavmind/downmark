@@ -81,7 +81,7 @@ class Downmark
                     else
                       ""
                     end
-      join(output, replacement)
+      join_lines(output, replacement)
     end
   end
 
@@ -129,13 +129,13 @@ class Downmark
     @rules.for_each do |rule|
       if rule[:append].is_a?(Proc)
         append_content = rule[:append].call(@options)
-        output = join(output, append_content) if append_content
+        output = join_lines(output, append_content) if append_content
       end
     end
     output.strip
   end
 
-  def join(output, replacement)
+  def join_lines(output, replacement)
     s1 = Utilities.trim_trailing_newlines(output)
     s2 = Utilities.trim_leading_newlines(replacement)
     nls = [output.length - s1.length, replacement.length - s2.length].max
