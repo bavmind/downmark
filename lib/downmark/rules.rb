@@ -38,7 +38,12 @@ class Rules
 
 
   def for_node(node)
-    return @blank_rule if node.is_blank?
+    
+    if node.is_blank? 
+      puts "   ㄴ Applying blank_rule since node is_blank" if @options[:debug]
+      return @blank_rule 
+    end
+    
 
     rule = find_rule(@rules, node) ||
            find_rule(@keep, node) ||
@@ -46,7 +51,7 @@ class Rules
            @default_rule
 
     if rule == @default_rule
-      puts "Applying default rule to node #{node.node.name.downcase}"
+      puts "   ㄴ Applying default rule to node #{node.node.name.downcase}" if @options[:debug]
     end
     rule
   end
@@ -225,12 +230,13 @@ class Rules
     add(:image, {
           filter: "img",
           replacement: proc { |_content, node, _options|
-            alt = node.node["alt"].to_s
+            alt = node.node["alt"].to_s || ""
             src = node.node["src"].to_s
             title = node.node["title"] ? " \"#{node.node["title"]}\"" : ""
             src.empty? ? "" : "![#{alt}](#{src}#{title})"
           }
         })
+
 
     # Indented code block
     add(:indented_code_block, {
@@ -401,9 +407,9 @@ class Rules
     if @options[:debug]
       if @options[:debug_with_html]
         html_content = node.node.to_html.strip
-        puts "Applying rule \e[31m#{rule_name}\e[0m to node \e[32m#{node.node.name.downcase}\e[0m with HTML: \e[34m#{html_content}\e[0m"
+        puts "   ㄴ Applying rule \e[31m#{rule_name}\e[0m to node \e[32m#{node.node.name.downcase}\e[0m with HTML: \e[34m#{html_content}\e[0m"
       else
-        puts "Applying rule \e[31m#{rule_name}\e[0m to node \e[32m#{node.node.name.downcase}\e[0m"
+        puts "   ㄴ Applying rule \e[31m#{rule_name}\e[0m to node \e[32m#{node.node.name.downcase}\e[0m"
       end
     end
   end

@@ -73,12 +73,16 @@ class Downmark
 
   def process(parent_node)
     parent_node.children.reduce("") do |output, child|
+      puts "Processing child node: #{child.name}" if @options[:debug]
       node = Node.new(child, @options)
       replacement = if node.text?
+                      puts " ㄴ Node is text" if @options[:debug]
                       node.is_code? ? node.content : escape(node.content)
                     elsif node.element?
+                      puts " ㄴ Node is element and replacement_for_node is called " if @options[:debug]
                       replacement_for_node(node)
                     else
+                      puts " ㄴ Node is not text or element: #{node.content}" if @options[:debug]
                       ""
                     end
       join_lines(output, replacement)
@@ -113,7 +117,12 @@ class Downmark
     rule = @rules.for_node(node)
     content = process(node.node)
     whitespace = node.flanking_whitespace
+    puts " ㄴ replacement_for_node: #{node.node.name}" if @options[:debug]
+    puts "   ㄴ Rule: #{rule}" if @options[:debug]
+    puts "   ㄴ Content for node: #{content}" if @options[:debug]
+    puts "   ㄴ Whitespace for node: #{whitespace}" if @options[:debug]
     content.strip! if whitespace[:leading].empty? && whitespace[:trailing].empty?
+
 
     # Adjust for replacement functions that may need turndown_service
     replacement = if rule[:replacement].arity == 4
@@ -121,6 +130,8 @@ class Downmark
                   else
                     rule[:replacement].call(content, node, @options)
                   end
+    
+    puts "   ㄴ Replacement: #{replacement}" if @options[:debug]
 
     "#{whitespace[:leading]}#{replacement}#{whitespace[:trailing]}"
   end
@@ -136,6 +147,7 @@ class Downmark
   end
 
   def join_lines(output, replacement)
+    puts "Joining lines for output: #{output} and replacement: #{replacement}" if @options[:debug]
     s1 = Utilities.trim_trailing_newlines(output)
     s2 = Utilities.trim_leading_newlines(replacement)
     nls = [output.length - s1.length, replacement.length - s2.length].max
