@@ -27,7 +27,7 @@ module Utilities
     # [/^(=+)/, '\\\\\1'], # this seams to break tests
     [/^(\#{1,6}) /, '\\\\\1 '],
     [/`/, '\\\\`'],
-    [/^~~~/, '\\\\~~~'],
+    # [/^~~~/, '\\\\~~~'], # disabled for escaping-code-blocks
     [/\[/, '\\\\['],
     [/\]/, '\\\\]'],
     # [/^>/, '\\\\>'], # disabled since it breaks "espaping > as blockquote" test
