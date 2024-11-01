@@ -42,7 +42,7 @@ class Node
   def blank?
     !Utilities.is_void?(node) &&
       !Utilities.is_meaningful_when_blank?(node) &&
-      node.content.strip.empty? &&
+      node.to_s.strip.empty? &&
       !Utilities.has_void?(node) &&
       !Utilities.has_meaningful_when_blank?(node)
   end
