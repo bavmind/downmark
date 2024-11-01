@@ -20,19 +20,19 @@ module Utilities
   ]
 
   ESCAPES = [
-    [/\\/, "\\\\\\\\"],
+    [/\\/, "\\\\\\\\"]
     # [/\*/, '\\\\*'], # disabled for inside-strong-test
-    [/^-(\s)/, '\\-\\1'],
+    # [/^-(\s)/, '\\-\\1'], # disable to fix escaping-hr-markdown--
     # [/^\+ /, '\\\\+ '], disabled for escaping-ul-markdown-+
     # [/^(=+)/, '\\\\\1'], # this seams to break tests
-    [/^(\#{1,6}) /, '\\\\\1 '],
-    [/`/, '\\\\`'],
+    # [/^(\#{1,6}) /, '\\\\\1 '], #disabled for escaping-headings-with-#
+    # [/`/, '\\\\`'] # disable to fix code escaping
     # [/^~~~/, '\\\\~~~'], # disabled for escaping-code-blocks
     # [/\[/, '\\\\['], # disable to fix escaping-[]
     # [/\]/, '\\\\]'], # disable to fix escaping-[]
     # [/^>/, '\\\\>'], # disabled since it breaks "espaping > as blockquote" test
     # [/_/, '\\\\_'], # disable for name escaping-strong-markdown-with-_
-    [/^(\d+)\. /, '\\\\\1. ']
+    # [/^(\d+)\. /, '\\\\\1. '] # disabled to fix escaping-ol-markdown
   ]
 
   def self.extend(destination, *sources)
