@@ -312,29 +312,36 @@ class Rules
       replacement: proc { |content, node, _options, _turndown_service|
         is_header = is_heading_row?(node)
         has_thead_parent = node.node.parent.name.downcase == "thead"
-        cells = content.strip.split(/\n/).reject(&:empty?)
-        row = "| " + cells.join(" | ") + " |"
+        cells = content.strip.split(/\n/).reject(&:empty?).map(&:strip)
 
-        if is_header && !has_thead_parent
-          if !@separator_added
-            separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
-            @separator_added = true
-            "\n#{row}\n#{separator}"
+        # **Add this condition to skip empty rows**
+        if cells.all?(&:empty?)
+          ""
+        else
+          row = "| " + cells.join(" | ") + " |"
+
+          if is_header && !has_thead_parent
+            if !@separator_added
+              separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
+              @separator_added = true
+              "\n#{row}\n#{separator}"
+            else
+              # For subsequent headers, add the row without a separator
+              "\n#{row}"
+            end
           else
-            # For subsequent headers, add the row without a separator
             "\n#{row}"
           end
-        else
-          "\n#{row}"
         end
       }
-    })
+})
+
 
     add(:table_header, {
       filter: "thead",
       replacement: proc { |content, node, _options, turndown_service|
                       # Process header cells to get their content length
-                      header_cells = node.node.css("th").map do |cell|
+                        header_cells = node.node.css("th, td").map do |cell|
                         cell_content = turndown_service.process(cell)
                         cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
                         cell_content = " " if cell_content.empty?
@@ -375,7 +382,7 @@ class Rules
 
   def is_data_table?(node)
     # A heuristic: if the table contains any <th> elements, consider it a data table
-    node.node.css("th").any?
+    node.node.css("th, thead").any?
   end
 
   # Helper method to determine if a node is inside a data table
