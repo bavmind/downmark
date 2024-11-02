@@ -340,22 +340,28 @@ class Rules
     add(:table_header, {
       filter: "thead",
       replacement: proc { |content, node, _options, turndown_service|
-                      # Process header cells to get their content length
+                        # Process header cells to get their content length
                         header_cells = node.node.css("th, td").map do |cell|
-                        cell_content = turndown_service.process(cell)
-                        cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
-                        cell_content = " " if cell_content.empty?
-                        cell_content
+                          cell_content = turndown_service.process(cell)
+                          cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
+                          cell_content = " " if cell_content.empty?
+                          cell_content
+                        end
+
+                      # Skip the rule if all header are emtpy or only contain whitespace
+                      unless header_cells.all?(&:empty?) || header_cells.all? { |cell| cell.strip.empty? }
+
+                        separator = header_cells.map do |cell_content|
+                          "---"
+                        end.join(" | ")
+
+                        separator_line = "| #{separator} |\n"
+
+                        (content + "\n" + separator_line)
+                       
                       end
+                        
 
-                      # Build the separator line based on header cell lengths
-                      separator = header_cells.map do |cell_content|
-                        "---"
-                      end.join(" | ")
-
-                      separator_line = "| #{separator} |\n"
-
-                      (content + "\n" + separator_line)
                     }
     })
 
