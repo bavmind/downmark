@@ -393,9 +393,24 @@ class Rules
 
   # Helper method to determine if a row is a header row
   def is_heading_row?(node)
-    #puts "is_heading_row? #{node.node.name.downcase} #{node.node.css("th").any?}"
-    node.node.element_children.all? { |child| child.name.downcase == 'th' }
+    parent_name = node.node.parent.name.downcase
+  
+    if parent_name == 'thead'
+      true
+    elsif parent_name == 'table' || parent_name == 'tbody'
+      # Check if this is the first row of the table or tbody
+      first_row = node.node.parent.css('tr').first
+      is_first_row = node.node == first_row
+  
+      # Check if all cells in this row are <th>
+      all_th_cells = node.node.element_children.all? { |child| child.name.downcase == 'th' }
+  
+      is_first_row && all_th_cells
+    else
+      false
+    end
   end
+  
 
   def find_rule(rules, node)
     rule = rules.find { |rule| filter_value(rule[:filter], node) }
