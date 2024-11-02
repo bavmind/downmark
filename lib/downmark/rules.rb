@@ -300,7 +300,7 @@ class Rules
         cell_content = turndown_service.process(node.node)
         cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
         cell_content = " " if cell_content.empty?
-        cell_content
+        cell_content + "\n"  # Add a newline after each cell content
       }
     })
 
@@ -330,30 +330,27 @@ class Rules
       }
     })
 
-
-
-
     add(:table_header, {
-          filter: "thead",
-          replacement: proc { |content, node, _options, turndown_service|
-                         # Process header cells to get their content length
-                         header_cells = node.node.css("th").map do |cell|
-                           cell_content = turndown_service.process(cell)
-                           cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
-                           cell_content = " " if cell_content.empty?
-                           cell_content
-                         end
+      filter: "thead",
+      replacement: proc { |content, node, _options, turndown_service|
+                      # Process header cells to get their content length
+                      header_cells = node.node.css("th").map do |cell|
+                        cell_content = turndown_service.process(cell)
+                        cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
+                        cell_content = " " if cell_content.empty?
+                        cell_content
+                      end
 
-                         # Build the separator line based on header cell lengths
-                         separator = header_cells.map do |cell_content|
-                           "-" * [3, cell_content.length].max
-                         end.join(" | ")
+                      # Build the separator line based on header cell lengths
+                      separator = header_cells.map do |cell_content|
+                        "---"
+                      end.join(" | ")
 
-                         separator_line = "| #{separator} |\n"
+                      separator_line = "| #{separator} |\n"
 
-                         (content + "\n" + separator_line)
-                       }
-        })
+                      (content + "\n" + separator_line)
+                    }
+    })
 
     add(:table_body, {
       filter: "tbody",
@@ -361,7 +358,6 @@ class Rules
         "\n#{content.strip}\n"
       }
     })
-        
 
     add(:table, {
       filter: proc { |node, _options|
@@ -372,7 +368,6 @@ class Rules
         "\n\n#{content.strip}\n\n"
       }
     })
-
 
     # Initialize reference storage for reference links
     @references = []
