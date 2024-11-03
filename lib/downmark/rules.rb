@@ -305,64 +305,72 @@ class Rules
     })
 
 
+    # Update the table_row rule:
     add(:table_row, {
       filter: proc { |node, _options|
         node.node.name.downcase == "tr" && is_in_data_table?(node)
       },
-      replacement: proc { |content, node, _options, _turndown_service|
+      replacement: proc { |_content, node, _options, turndown_service|
         is_header = is_heading_row?(node)
         has_thead_parent = node.node.parent.name.downcase == "thead"
-        cells = content.strip.split(/\n/).reject(&:empty?).map(&:strip)
-
-        # **Add this condition to skip empty rows**
-        if cells.all?(&:empty?)
-          ""
-        else
-          row = "| " + cells.join(" | ") + " |"
-
-          if is_header && !has_thead_parent
-            if !@separator_added
-              separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
-              @separator_added = true
-              "\n#{row}\n#{separator}"
-            else
-              # For subsequent headers, add the row without a separator
-              "\n#{row}"
-            end
+        
+        # Process each cell individually to preserve positions
+        cells = node.node.element_children.map do |cell|
+          cell_content = turndown_service.process(cell)
+          cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
+        end
+        
+        # Replace empty cells with space
+        cells.map! { |cell| cell.empty? ? "" : cell }
+        
+        row = "| " + cells.join(" | ") + " |"
+    
+        if is_header && !has_thead_parent
+          if !@separator_added
+            separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
+            @separator_added = true
+            "\n#{row}\n#{separator}"
           else
             "\n#{row}"
           end
+        else
+          "\n#{row}"
         end
       }
-})
+    })
 
 
     add(:table_header, {
       filter: "thead",
       replacement: proc { |content, node, _options, turndown_service|
-                        # Process header cells to get their content length
-                        header_cells = node.node.css("th, td").map do |cell|
-                          cell_content = turndown_service.process(cell)
-                          cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
-                          cell_content = " " if cell_content.empty?
-                          cell_content
-                        end
+        # Process header cells to get their content and alignment
+        header_cells = node.node.css("th, td").map do |cell|
+          cell_content = turndown_service.process(cell)
+          cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
+          cell_content = " " if cell_content.empty?
+          cell_content
+        end
 
-                      # Skip the rule if all header are emtpy or only contain whitespace
-                      unless header_cells.all?(&:empty?) || header_cells.all? { |cell| cell.strip.empty? }
+        # Skip the rule if all headers are empty or only contain whitespace
+        unless header_cells.all?(&:empty?) || header_cells.all? { |cell| cell.strip.empty? }
+          # Get alignment for each cell
+          separators = node.node.css("th, td").map do |cell|
+            case cell['align']&.downcase
+            when 'left'
+              ':--'
+            when 'center'
+              ':-:'
+            when 'right'
+              '--:'
+            else
+              '---'
+            end
+          end
 
-                        separator = header_cells.map do |cell_content|
-                          "---"
-                        end.join(" | ")
-
-                        separator_line = "| #{separator} |\n"
-
-                        (content + "\n" + separator_line)
-                       
-                      end
-                        
-
-                    }
+          separator_line = "| #{separators.join(' | ')} |\n"
+          (content + "\n" + separator_line)
+        end
+      }
     })
 
     add(:table_body, {
