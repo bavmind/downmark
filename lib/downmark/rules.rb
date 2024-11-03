@@ -312,7 +312,6 @@ class Rules
     })
 
 
-    # Update the table_row rule:
     add(:table_row, {
       filter: proc { |node, _options|
         node.node.name.downcase == "tr" && is_in_data_table?(node)
@@ -330,18 +329,23 @@ class Rules
         # Replace empty cells with space
         cells.map! { |cell| cell.empty? ? "" : cell }
         
-        row = "| " + cells.join(" | ") + " |"
-    
-        if is_header && !has_thead_parent
-          if !@separator_added
-            separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
-            @separator_added = true
-            "\n#{row}\n#{separator}"
+        # Check if all cells are empty
+        if cells.all?(&:empty?)
+          ""
+        else
+          row = "| " + cells.join(" | ") + " |"
+          
+          if is_header && !has_thead_parent
+            if !@separator_added
+              separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
+              @separator_added = true
+              "\n#{row}\n#{separator}"
+            else
+              "\n#{row}"
+            end
           else
             "\n#{row}"
           end
-        else
-          "\n#{row}"
         end
       }
     })
