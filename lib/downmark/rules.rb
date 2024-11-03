@@ -158,17 +158,24 @@ class Rules
         })
 
     add(:inline_link, {
-          filter: proc { |node, options|
-            (options[:link_style] == "inlined") &&
-              node.node.name.downcase == "a" &&
-              node.node["href"]
-          },
-          replacement: proc { |content, node, _options|
-            href = node.node["href"].to_s
-            title = node.node["title"] ? " \"#{node.node["title"].gsub('"', '\"')}\"" : ""
-            "[#{content}](#{href}#{title})"
-          }
-        })
+      filter: proc { |node, options|
+        options[:link_style] == "inlined" &&
+          node.node.name.downcase == "a" &&
+          node.node["href"]
+      },
+      replacement: proc { |content, node, _options|
+        href = node.node["href"]
+        title = if node.node["title"]
+          title_text = node.node["title"].gsub('"', '\"')
+          # Replace multiple newlines with a single newline and remove leading spaces
+          title_text = title_text.split(/\n+/).map(&:lstrip).join("\n")
+          " \"#{title_text}\""
+        else
+          ""
+        end
+        "[#{content}](#{href}#{title})"
+      }
+    })
 
     add(:reference_link, {
           filter: proc { |node, options|
