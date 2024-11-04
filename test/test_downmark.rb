@@ -48,7 +48,7 @@ class TestDownmark < Minitest::Test
 
   Minitest.after_run do
     if failed_tests.any? || errored_tests.any?
-      puts "\nTest Results:"
+      puts "\nOpen issues:"
       failed_tests.each do |test|
         puts "\e[31m  ❌ Failed: #{test}\e[0m | Debug: \e[36mruby debug_test.rb --name #{test}\e[0m"
       end
