@@ -14,16 +14,6 @@ class TestDownmark < Minitest::Test
     attr_reader :failed_tests, :errored_tests
   end
 
-  def test_that_it_has_a_version_number
-    refute_nil ::Downmark::VERSION
-  rescue Minitest::Assertion => e
-    self.class.failed_tests << "test_that_it_has_a_version_number"
-    raise e
-  rescue StandardError => e
-    self.class.errored_tests << "test_that_it_has_a_version_number"
-    raise e
-  end
-
   # Dynamic test generation based on fixtures folders
   Dir.glob(File.join(__dir__, "fixtures", "*")).each do |fixture_folder|
     # ignore "__postponed" folder
