@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "test_helper"
 
 # Preprocess ARGV to adjust the --name parameter
@@ -10,13 +8,20 @@ end
 
 class TestDownmark < Minitest::Test
   @failed_tests = []
+  @errored_tests = []
 
   class << self
-    attr_reader :failed_tests
+    attr_reader :failed_tests, :errored_tests
   end
 
   def test_that_it_has_a_version_number
     refute_nil ::Downmark::VERSION
+  rescue Minitest::Assertion => e
+    self.class.failed_tests << "test_that_it_has_a_version_number"
+    raise e
+  rescue StandardError => e
+    self.class.errored_tests << "test_that_it_has_a_version_number"
+    raise e
   end
 
   # Dynamic test generation based on fixtures folders
@@ -32,14 +37,20 @@ class TestDownmark < Minitest::Test
     rescue Minitest::Assertion => e
       self.class.failed_tests << test_name
       raise e # re-raise the error to let Minitest report it as usual
+    rescue StandardError => e
+      self.class.errored_tests << test_name
+      raise e # re-raise the error to let Minitest report it as usual
     end
   end
 
   Minitest.after_run do
-    if failed_tests.any?
-      puts "\nFailed Tests:"
+    if failed_tests.any? || errored_tests.any?
+      puts "\nTest Results:"
       failed_tests.each do |test|
-        puts "\e[31m  ❌ #{test}\e[0m | Debug: \e[36mruby debug_test.rb --name #{test}\e[0m"
+        puts "\e[31m  ❌ Failure: #{test}\e[0m | Debug: \e[36mruby debug_test.rb --name #{test}\e[0m"
+      end
+      errored_tests.each do |test|
+        puts "\e[31m  💥 Error: #{test}\e[0m | Debug: \e[36mruby debug_test.rb --name #{test}\e[0m"
       end
     else
       puts "\nAll tests passed!"
