@@ -246,7 +246,14 @@ class Rules
               ""
             end
             src = node.node["src"].to_s
-            title = node.node["title"] ? " \"#{node.node["title"]}\"" : ""
+            title = if node.node["title"]
+              alt_title = node.node["title"].to_s.gsub('"', '\"')
+              # Replace multiple newlines with a single newline and remove leading spaces
+              alt_title = alt_title.split(/\n+/).map(&:lstrip).join("\n")
+              " \"#{alt_title}\""
+            else
+              ""
+            end
             src.empty? ? "" : "![#{alt}](#{src}#{title})"
           }
         })
