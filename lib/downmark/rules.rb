@@ -138,8 +138,8 @@ class Rules
           filter: proc { |node, options|
             (options[:code_block_style] == "fenced") &&
               node.node.name.downcase == "pre" &&
-              node.element_children.first &&
-              node.element_children.first.name.downcase == "code"
+              node.node.element_children.first &&
+              node.node.element_children.first.name.downcase == "code"
           },
           replacement: proc { |_content, node, options|
             code_node = node.node.element_children.first
