@@ -26,6 +26,9 @@ class TestDownmark < Minitest::Test
 
   # Dynamic test generation based on fixtures folders
   Dir.glob(File.join(__dir__, "fixtures", "*")).each do |fixture_folder|
+    # ignore "__postponed" folder
+    next if File.basename(fixture_folder) == "__postponed"
+
     test_name = File.basename(fixture_folder)
 
     define_method("test_#{test_name}") do
