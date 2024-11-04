@@ -50,7 +50,7 @@ class TestDownmark < Minitest::Test
     if failed_tests.any? || errored_tests.any?
       puts "\nTest Results:"
       failed_tests.each do |test|
-        puts "\e[31m  ❌ Failure: #{test}\e[0m | Debug: \e[36mruby debug_test.rb --name #{test}\e[0m"
+        puts "\e[31m  ❌ Failed: #{test}\e[0m | Debug: \e[36mruby debug_test.rb --name #{test}\e[0m"
       end
       errored_tests.each do |test|
         puts "\e[31m  💥 Error: #{test}\e[0m | Debug: \e[36mruby debug_test.rb --name #{test}\e[0m"
