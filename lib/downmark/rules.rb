@@ -127,6 +127,7 @@ class Rules
             if parent.name.downcase == "ol"
               start = parent["start"] ? parent["start"].to_i : 1
               index = parent.element_children.index(node.node)
+              # TODO: Fix for ol-with-li-value
               prefix = "#{start + index}.  "
             end
             content = content.strip
