@@ -18,7 +18,7 @@ class Rules
   def add(key, rule)
     rule[:name] = key
     @rules.unshift(rule)
-  end  
+  end
 
   def keep(filter)
     @keep.unshift({
@@ -38,12 +38,12 @@ class Rules
 
 
   def for_node(node)
-    
-    if node.is_blank? 
+
+    if node.is_blank?
       puts "   ㄴ Applying blank_rule since node is_blank" if @options[:debug]
-      return @blank_rule 
+      return @blank_rule
     end
-    
+
 
     rule = find_rule(@rules, node) ||
            find_rule(@keep, node) ||
@@ -232,8 +232,8 @@ class Rules
       }
     })
 
-        
- 
+
+
 
     add(:image, {
           filter: "img",
@@ -334,22 +334,22 @@ class Rules
       replacement: proc { |_content, node, _options, turndown_service|
         is_header = is_heading_row?(node)
         has_thead_parent = node.node.parent.name.downcase == "thead"
-        
+
         # Process each cell individually to preserve positions
         cells = node.node.element_children.map do |cell|
           cell_content = turndown_service.process(cell)
           cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
         end
-        
+
         # Replace empty cells with space
         cells.map! { |cell| cell.empty? ? "" : cell }
-        
+
         # Check if all cells are empty
         if cells.all?(&:empty?)
           ""
         else
           row = "| " + cells.join(" | ") + " |"
-          
+
           if is_header && !has_thead_parent
             if !@separator_added
               separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
@@ -375,7 +375,7 @@ class Rules
           cell_content = " " if cell_content.empty?
           cell_content
         end
-    
+
         unless header_cells.all?(&:empty?) || header_cells.all? { |cell| cell.strip.empty? }
           separators = node.node.css("th, td").map do |cell|
             case cell['align']&.downcase
@@ -389,7 +389,7 @@ class Rules
               '---'
             end
           end
-    
+
           separator_line = "| #{separators.join(' | ')} |"
           @separator_added = true  # Set separator_added to true
           content + "\n" + separator_line
@@ -432,23 +432,23 @@ class Rules
   # Helper method to determine if a row is a header row
   def is_heading_row?(node)
     parent_name = node.node.parent.name.downcase
-  
+
     if parent_name == 'thead'
       true
     elsif parent_name == 'table' || parent_name == 'tbody'
       # Check if this is the first row of the table or tbody
       first_row = node.node.parent.css('tr').first
       is_first_row = node.node == first_row
-  
+
       # Check if all cells in this row are <th>
       all_th_cells = node.node.element_children.all? { |child| child.name.downcase == 'th' }
-  
+
       is_first_row && all_th_cells
     else
       false
     end
   end
-  
+
 
   def find_rule(rules, node)
     rule = rules.find { |rule| filter_value(rule[:filter], node) }
