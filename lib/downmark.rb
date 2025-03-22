@@ -18,6 +18,8 @@ class Downmark
       link_style: "inlined",
       link_reference_style: "full",
       treat_all_tables_as_data_tables: false,
+      handle_colspan: true,
+      handle_rowspan: true,
       br: "",
       preformatted_code: false,
       blank_replacement: proc { |_content, node|
@@ -41,8 +43,69 @@ class Downmark
     return "" if input.strip.empty?
 
     root = create_root_node(input)
+
+    # We need to preprocess table spans otherwise attribute is already removed
+    if @options[:handle_colspan] || @options[:handle_rowspan]
+      root.css('table').each do |table|
+        transform_table_spans(table)
+      end
+    end
+
     output = process(root)
     post_process(output)
+  end
+
+
+  # Transform colspan and rowspan attributes in HTML tables to duplicated cells
+  def transform_table_spans(table_node)
+    return unless table_node
+
+    puts "   ㄴ Transforming colspan and rowspan" if @options[:debug]  
+    
+    # Handle colspan attributes
+    if @options[:handle_colspan]
+
+      puts "   ㄴ Handling colspan" if @options[:debug]
+
+      table_node.css('td[colspan], th[colspan]').each do |cell|
+        colspan = cell['colspan'].to_i
+        cell.remove_attribute('colspan')
+        (colspan - 1).times { cell.add_next_sibling(cell.dup) }
+      end
+    end
+    
+    # Handle rowspan attributes
+    if @options[:handle_rowspan]
+
+      puts "   ㄴ Handling rowspan" if @options[:debug]
+
+      table_node.css('td[rowspan], th[rowspan]').each do |cell|
+        rowspan = cell['rowspan'].to_i
+        cell.remove_attribute('rowspan')
+        current_row = cell.parent
+        cell_index = current_row.children.find_all { |c| c.element? }.index(cell)
+        
+        (1...rowspan).each do |i|
+          next_row = current_row.xpath("following-sibling::tr[#{i}]").first
+          next unless next_row
+          
+          new_cell = cell.dup
+          inserted = false
+          
+          if cell_index > 0
+            prev_cells = next_row.children.find_all { |c| c.element? }
+            if prev_cells.size >= cell_index
+              prev_cells[cell_index - 1].add_next_sibling(new_cell)
+              inserted = true
+            end
+          end
+          
+          unless inserted
+            next_row.add_child(new_cell)
+          end
+        end
+      end
+    end
   end
 
   def use(plugin)
