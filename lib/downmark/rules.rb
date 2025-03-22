@@ -419,6 +419,9 @@ class Rules
   end
 
   def is_data_table?(node)
+    # disable the heuristic if treat_all_tables_as_data_tables is set
+    return true if @options[:treat_all_tables_as_data_tables]
+
     # A heuristic: if the table contains any <th> elements, consider it a data table
     node.node.css("th, thead").any?
   end

@@ -17,6 +17,7 @@ class Downmark
       strong_delimiter: "**",
       link_style: "inlined",
       link_reference_style: "full",
+      treat_all_tables_as_data_tables: false,
       br: "",
       preformatted_code: false,
       blank_replacement: proc { |_content, node|
