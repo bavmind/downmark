@@ -1,5 +1,5 @@
-# rules.rb
 # rubocop:disable all
+
 require_relative "utilities"
 
 class Rules

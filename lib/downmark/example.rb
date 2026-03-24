@@ -1,4 +1,3 @@
-# example_usage.rb
 require_relative "../downmark"
 
 html_input = <<~HTML

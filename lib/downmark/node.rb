@@ -1,4 +1,3 @@
-# node.rb
 require_relative "utilities"
 
 class Node

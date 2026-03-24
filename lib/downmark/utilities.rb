@@ -1,4 +1,3 @@
-# utilities.rb
 module Utilities
   BLOCK_ELEMENTS = %w[
     ADDRESS ARTICLE ASIDE AUDIO BLOCKQUOTE BODY CANVAS
