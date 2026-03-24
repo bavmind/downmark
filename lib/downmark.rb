@@ -185,7 +185,7 @@ class Downmark
     puts "   ㄴ Rule: #{rule}" if @options[:debug]
     puts "   ㄴ Content for node: #{content}" if @options[:debug]
     puts "   ㄴ Whitespace for node: #{whitespace}" if @options[:debug]
-    content.strip! if whitespace[:leading].empty? && whitespace[:trailing].empty?
+    content = content.strip if whitespace[:leading].empty? && whitespace[:trailing].empty?
 
 
     # Adjust for replacement functions that may need turndown_service
