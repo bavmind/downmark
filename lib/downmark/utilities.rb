@@ -64,7 +64,7 @@ module Utilities
   end
 
   def self.has_void?(node)
-    node.css(VOID_ELEMENTS.join(",")).any?
+    node.css(VOID_ELEMENTS.map(&:downcase).join(",")).any?
   end
 
   def self.is_meaningful_when_blank?(node)
@@ -72,6 +72,6 @@ module Utilities
   end
 
   def self.has_meaningful_when_blank?(node)
-    node.css(MEANINGFUL_WHEN_BLANK_ELEMENTS.join(",")).any?
+    node.css(MEANINGFUL_WHEN_BLANK_ELEMENTS.map(&:downcase).join(",")).any?
   end
 end

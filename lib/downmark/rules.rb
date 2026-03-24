@@ -343,122 +343,63 @@ class Rules
         })
 
     # Table rules
-    add(:table_cell, {
+    add(:table_keep, {
       filter: proc { |node, _options|
-        %w[th td].include?(node.node.name.downcase) && is_in_data_table?(node)
+        node.node.name.downcase == "table" && !convertible_table?(node.node)
       },
-      replacement: proc { |content, node, _options, turndown_service|
-        cell_content = turndown_service.process(node.node)
-        cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
-        cell_content = " " if cell_content.empty?
-        cell_content + "\n"  # Add a newline after each cell content
+      replacement: proc { |_content, node, _options|
+        "\n\n#{serialized_table_html(node.node)}\n\n"
       }
     })
 
+    add(:table_cell, {
+      filter: %w[th td],
+      replacement: proc { |content, node, _options|
+        table_cell(content.strip.gsub("\n", " "), node.node)
+      }
+    })
 
     add(:table_row, {
-      filter: proc { |node, _options|
-        node.node.name.downcase == "tr" && is_in_data_table?(node)
-      },
-      replacement: proc { |_content, node, _options, turndown_service|
-        is_header = is_heading_row?(node)
-        has_thead_parent = node.node.parent.name.downcase == "thead"
+      filter: "tr",
+      replacement: proc { |content, node, _options|
+        next "" if empty_table_row?(node.node)
 
-        # Process each cell individually to preserve positions
-        cells = node.node.element_children.map do |cell|
-          cell_content = turndown_service.process(cell)
-          cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
-        end
+        border_cells = ""
+        align_map = { "left" => ":--", "right" => "--:", "center" => ":-:" }
 
-        # Replace empty cells with space
-        cells.map! { |cell| cell.empty? ? "" : cell }
-
-        # Check if all cells are empty
-        if cells.all?(&:empty?)
-          ""
-        else
-          row = "| " + cells.join(" | ") + " |"
-
-          if is_header && !has_thead_parent
-            if !@separator_added
-              separator = "| " + cells.map { |_| "---" }.join(" | ") + " |"
-              @separator_added = true
-              "\n#{row}\n#{separator}"
-            else
-              "\n#{row}"
-            end
-          else
-            "\n#{row}"
+        if is_heading_row?(node.node)
+          node.node.element_children.each do |child|
+            border = "---"
+            align = child["align"].to_s.downcase
+            border = align_map[align] || border unless align.empty?
+            border_cells += table_cell(border, child)
           end
         end
-      }
-    })
 
-
-    add(:table_header, {
-      filter: "thead",
-      replacement: proc { |content, node, _options, turndown_service|
-        header_cells = node.node.css("th, td").map do |cell|
-          cell_content = turndown_service.process(cell)
-          cell_content = cell_content.strip.gsub("\n", " ").gsub("|", '\\|')
-          cell_content = " " if cell_content.empty?
-          cell_content
-        end
-
-        unless header_cells.all?(&:empty?) || header_cells.all? { |cell| cell.strip.empty? }
-          separators = node.node.css("th, td").map do |cell|
-            case cell['align']&.downcase
-            when 'left'
-              ':--'
-            when 'center'
-              ':-:'
-            when 'right'
-              '--:'
-            else
-              '---'
-            end
-          end
-
-          separator_line = "| #{separators.join(' | ')} |"
-          @separator_added = true  # Set separator_added to true
-          content + "\n" + separator_line
-        end
-      }
-    })
-
-    add(:table_body, {
-      filter: "tbody",
-      replacement: proc { |content, _node, _options|
-        "\n#{content.strip}\n"
+        output = "\n#{content}"
+        output += "\n#{border_cells}" unless border_cells.empty?
+        output
       }
     })
 
     add(:table, {
       filter: proc { |node, _options|
-        node.node.name.downcase == "table" && is_data_table?(node)
+        node.node.name.downcase == "table" && convertible_table?(node.node)
       },
       replacement: proc { |content, _node, _options|
-        @separator_added = false
-        "\n\n#{content.strip}\n\n"
+        "\n\n#{content.gsub("\n\n", "\n")}\n\n"
+      }
+    })
+
+    add(:table_section, {
+      filter: %w[thead tbody tfoot],
+      replacement: proc { |content, _node, _options|
+        content
       }
     })
 
     # Initialize reference storage for reference links
     @references = []
-  end
-
-  def is_data_table?(node)
-    # disable the heuristic if treat_all_tables_as_data_tables is set
-    return true if @options[:treat_all_tables_as_data_tables]
-
-    # A heuristic: if the table contains any <th> elements, consider it a data table
-    node.node.css("th, thead").any?
-  end
-
-  # Helper method to determine if a node is inside a data table
-  def is_in_data_table?(node)
-    table_node = node.node.ancestors("table").first
-    table_node && is_data_table?(Node.new(table_node, @options))
   end
 
   def ordered_list_item_number(list_item_node)
@@ -475,24 +416,65 @@ class Rules
     current_number
   end
 
-  # Helper method to determine if a row is a header row
-  def is_heading_row?(node)
-    parent_name = node.node.parent.name.downcase
+  def convertible_table?(table_node)
+    return true if @options[:treat_all_tables_as_data_tables]
 
-    if parent_name == 'thead'
-      true
-    elsif parent_name == 'table' || parent_name == 'tbody'
-      # Check if this is the first row of the table or tbody
-      first_row = node.node.parent.css('tr').first
-      is_first_row = node.node == first_row
+    first_row = table_node.css("tr").first
+    first_row && is_heading_row?(first_row)
+  end
 
-      # Check if all cells in this row are <th>
-      all_th_cells = node.node.element_children.all? { |child| child.name.downcase == 'th' }
+  def table_cell(content, node)
+    index = node.parent.element_children.index(node)
+    prefix = index.zero? ? "| " : " "
+    "#{prefix}#{content} |"
+  end
 
-      is_first_row && all_th_cells
-    else
-      false
+  def empty_table_row?(row_node)
+    cells = row_node.element_children.select { |child| %w[th td].include?(child.name.downcase) }
+    cells.any? && cells.all? { |cell| cell.content.strip.empty? }
+  end
+
+  def serialized_table_html(table_node)
+    table = table_node.dup(1)
+
+    unless table.css("thead,tbody,tfoot").any?
+      direct_rows = table.element_children.select { |child| child.name.downcase == "tr" }
+      if direct_rows.any?
+        tbody = Nokogiri::XML::Node.new("tbody", table.document)
+        direct_rows.each do |row|
+          tbody.add_child(row.remove)
+        end
+        table.add_child(tbody)
+      end
     end
+
+    table.to_html.gsub(/>\s+</, "><").strip
+  end
+
+  # Helper method to determine if a row is a header row
+  def is_heading_row?(row_node)
+    parent_node = row_node.parent
+    parent_name = parent_node.name.downcase
+
+    return true if parent_name == "thead"
+
+    first_row = parent_node.element_children.find { |child| child.name.downcase == "tr" }
+    return false unless first_row == row_node
+    return false unless parent_name == "table" || first_tbody?(parent_node)
+
+    row_node.element_children.all? { |child| child.name.downcase == "th" }
+  end
+
+  def first_tbody?(element)
+    return false unless element.name.downcase == "tbody"
+
+    previous_sibling = element.previous_sibling
+    while previous_sibling&.text? && previous_sibling.text.strip.empty?
+      previous_sibling = previous_sibling.previous_sibling
+    end
+
+    previous_sibling.nil? ||
+      (previous_sibling.name.downcase == "thead" && previous_sibling.text.strip.empty?)
   end
 
 

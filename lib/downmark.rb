@@ -18,9 +18,9 @@ class Downmark
       link_style: "inlined",
       link_reference_style: "full",
       treat_all_tables_as_data_tables: false,
-      handle_colspan: true,
-      handle_rowspan: true,
-      br: "",
+      handle_colspan: false,
+      handle_rowspan: false,
+      br: "  ",
       preformatted_code: false,
       blank_replacement: proc { |_content, node|
         node.is_block? ? "\n\n" : ""
