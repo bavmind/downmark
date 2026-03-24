@@ -24,7 +24,7 @@ class TestDownmark < Minitest::Test
     define_method("test_#{test_name}") do
       html_content = read_fixture(test_name, "html.html")
       expected_md_content = read_fixture(test_name, "markdown.md")
-      actual_md_content = Downmark.new.convert(html_content)
+      actual_md_content = Downmark.new(**fixture_options(test_name)).convert(html_content)
 
       assert_equal expected_md_content, actual_md_content, "Failed on fixture: #{test_name}"
     rescue Minitest::Assertion => e
@@ -54,5 +54,9 @@ class TestDownmark < Minitest::Test
 
   def read_fixture(test_name, file_name)
     File.read(File.join(__dir__, "fixtures/#{test_name}/#{file_name}")).strip
+  end
+
+  def fixture_options(test_name)
+    FixtureOptions.for(test_name)
   end
 end

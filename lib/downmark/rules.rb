@@ -3,6 +3,8 @@
 require_relative "utilities"
 
 class Rules
+  HIGHLIGHT_REGEXP = /highlight-(?:text|source)-([a-z0-9]+)/
+
   attr_reader :rules
 
   def initialize(options)
@@ -121,17 +123,25 @@ class Rules
     add(:list_item, {
           filter: "li",
           replacement: proc { |content, node, options|
-            content = content.gsub(/^\n+/, "").gsub(/\n+$/, "\n").gsub("\n", "\n    ")
+            content = content.gsub(/\A\n+/, "").gsub(/\n+\z/, "\n")
+            content = content.gsub(/\n([^\n])/, "\n    \\1")
             prefix = options[:bullet_list_marker] + "   "
             parent = node.node.parent
             if parent.name.downcase == "ol"
-              start = parent["start"] ? parent["start"].to_i : 1
-              index = parent.element_children.index(node.node)
-              # TODO: Fix for ol-with-li-value
-              prefix = "#{start + index}.  "
+              prefix = "#{ordered_list_item_number(node.node)}.  "
             end
-            content = content.strip
-            "#{prefix}#{content}\n"
+            has_next_list_item = node.node.xpath("following-sibling::*").any?
+            needs_loose_spacing = has_next_list_item &&
+              node.node.element_children.any? { |child| child.name.downcase == "p" }
+            suffix = if needs_loose_spacing
+              "\n"
+            elsif has_next_list_item && content !~ /\n\z/
+              "\n"
+            else
+              ""
+            end
+
+            "#{prefix}#{content}#{suffix}"
           }
         })
 
@@ -145,9 +155,28 @@ class Rules
           replacement: proc { |_content, node, options|
             code_node = node.node.element_children.first
             language = code_node["class"].to_s[/language-(\S+)/, 1] || ""
-            code = code_node.text.rstrip
+            code = code_node.text.sub(/\n\z/, "")
             fence = options[:fence] * 3
             "\n\n#{fence}#{language}\n#{code}\n#{fence}\n\n"
+          }
+        })
+
+    add(:highlighted_code_block, {
+          filter: proc { |node, _options|
+            next false unless node.node.name.downcase == "div"
+
+            first_child = node.node.element_children.first
+            class_names = node.node["class"].to_s.split
+
+            class_names.any? { |class_name| class_name.match?(HIGHLIGHT_REGEXP) } &&
+              first_child &&
+              first_child.name.downcase == "pre"
+          },
+          replacement: proc { |_content, node, options|
+            class_name = node.node["class"].to_s.split.find { |name| name.match?(HIGHLIGHT_REGEXP) }.to_s
+            language = class_name[HIGHLIGHT_REGEXP, 1] || ""
+
+            "\n\n#{options[:fence]}#{language}\n#{node.node.element_children.first.text}\n#{options[:fence]}\n\n"
           }
         })
 
@@ -209,7 +238,7 @@ class Rules
     add(:strong, {
           filter: %w[strong b],
           replacement: proc { |content, _node, options|
-            content.strip.empty? ? "" : "#{options[:strong_delimiter]}#{content}#{options[:strong_delimiter]} "
+            content.strip.empty? ? "" : "#{options[:strong_delimiter]}#{content}#{options[:strong_delimiter]}"
           }
         })
 
@@ -271,7 +300,7 @@ class Rules
           replacement: proc { |_content, node, _options|
                          code_node = node.node.element_children.first
                          code = code_node.text.rstrip
-                         indented_code = code.gsub(/\n$/, "").gsub(/^/, "    ")
+                         indented_code = code.split("\n", -1).map { |line| line.empty? ? "" : "    #{line}" }.join("\n")
                          "\n\n#{indented_code}\n\n"
                        }
         })
@@ -296,7 +325,7 @@ class Rules
                          code_node = node.node.element_children.first
                          class_name = code_node["class"] || ""
                          language = class_name[/language-(\S+)/, 1] || ""
-                         code = code_node.text
+                         code = code_node.text.sub(/\n\z/, "")
 
                          # Adjust fence size if needed
                          fence_char = options[:fence][0]
@@ -309,7 +338,7 @@ class Rules
 
                          fence = fence_char * fence_size
 
-                         "\n\n#{fence}#{language}\n#{code.rstrip}\n#{fence}\n\n"
+                         "\n\n#{fence}#{language}\n#{code}\n#{fence}\n\n"
                        }
         })
 
@@ -430,6 +459,20 @@ class Rules
   def is_in_data_table?(node)
     table_node = node.node.ancestors("table").first
     table_node && is_data_table?(Node.new(table_node, @options))
+  end
+
+  def ordered_list_item_number(list_item_node)
+    parent = list_item_node.parent
+    current_number = parent["start"] ? parent["start"].to_i : 1
+
+    parent.element_children.each do |child|
+      current_number = child["value"].to_i if child["value"]
+      return current_number if child == list_item_node
+
+      current_number += 1
+    end
+
+    current_number
   end
 
   # Helper method to determine if a row is a header row

@@ -1,6 +1,8 @@
 require_relative "utilities"
 
 class Node
+  INLINE_WHITESPACE = /(?:[[:space:]]|\u00A0)/
+
   attr_reader :node, :is_block, :is_code, :is_blank, :flanking_whitespace
 
   def initialize(nodey, options)
@@ -50,8 +52,10 @@ class Node
     return { leading: "", trailing: "" } if is_block? || (@options[:preformatted_code] && is_code?)
 
     content = node.content
-    leading_ws = content[/\A([ \t\r\n]*)(\s*)/, 1] || ""
-    trailing_ws = content[/(\s*)([ \t\r\n]*)\z/, 2] || ""
+    return { leading: content, trailing: "" } if content.match?(/\A#{INLINE_WHITESPACE}+\z/o)
+
+    leading_ws = content[/\A#{INLINE_WHITESPACE}+/, 0] || ""
+    trailing_ws = content[/#{INLINE_WHITESPACE}+\z/, 0] || ""
 
     # Debug whitspaces
     # { leading: "LEADING_WS", trailing: "TRAILING_WS" }

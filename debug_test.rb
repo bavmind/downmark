@@ -1,5 +1,6 @@
 $LOAD_PATH.unshift File.expand_path("./lib", __dir__)
 require "downmark"
+require_relative "test/fixture_options"
 
 # Check if the name option is provided
 if ARGV.length != 2 || ARGV[0] != "--name"
@@ -25,7 +26,7 @@ html_content = File.read(html_file_path)
 system("ruby", "-Ilib:test", "test/test_downmark.rb", "--name", test_name)
 puts "--------------------------------------------------"
 puts "Process:"
-downmark = Downmark.new(debug: true)
+downmark = Downmark.new(**FixtureOptions.for(test_name), debug: true)
 markdown_content = downmark.convert(html_content)
 puts "--------------------------------------------------"
 puts "final markdown:"
