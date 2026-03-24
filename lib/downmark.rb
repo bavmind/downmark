@@ -60,8 +60,8 @@ class Downmark
   def transform_table_spans(table_node)
     return unless table_node
 
-    puts "   ㄴ Transforming colspan and rowspan" if @options[:debug]  
-    
+    puts "   ㄴ Transforming colspan and rowspan" if @options[:debug]
+
     # Handle colspan attributes
     if @options[:handle_colspan]
 
@@ -73,7 +73,7 @@ class Downmark
         (colspan - 1).times { cell.add_next_sibling(cell.dup) }
       end
     end
-    
+
     # Handle rowspan attributes
     if @options[:handle_rowspan]
 
@@ -84,14 +84,14 @@ class Downmark
         cell.remove_attribute('rowspan')
         current_row = cell.parent
         cell_index = current_row.children.find_all { |c| c.element? }.index(cell)
-        
+
         (1...rowspan).each do |i|
           next_row = current_row.xpath("following-sibling::tr[#{i}]").first
           next unless next_row
-          
+
           new_cell = cell.dup
           inserted = false
-          
+
           if cell_index > 0
             prev_cells = next_row.children.find_all { |c| c.element? }
             if prev_cells.size >= cell_index
@@ -99,7 +99,7 @@ class Downmark
               inserted = true
             end
           end
-          
+
           unless inserted
             next_row.add_child(new_cell)
           end
@@ -194,7 +194,7 @@ class Downmark
                   else
                     rule[:replacement].call(content, node, @options)
                   end
-    
+
     puts "   ㄴ Replacement: #{replacement}" if @options[:debug]
 
     "#{whitespace[:leading]}#{replacement}#{whitespace[:trailing]}"
@@ -268,7 +268,7 @@ class Downmark
         end
 
         if text.empty?
-          node = remove(node)
+          node = remove_node(node)
           next
         end
 
@@ -286,7 +286,7 @@ class Downmark
           keep_leading_ws = false
         end
       else
-        node = remove(node)
+        node = remove_node(node)
         next
       end
 
@@ -298,10 +298,10 @@ class Downmark
     return unless prev_text
 
     prev_text.content = prev_text.content.sub(/ $/, "")
-    remove(prev_text) if prev_text.content.empty?
+    remove_node(prev_text) if prev_text.content.empty?
   end
 
-  def remove(node)
+  def remove_node(node)
     next_node = node.next_sibling || node.parent
     node.remove
     next_node
