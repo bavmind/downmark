@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Downmark is a simple HTML to Markdown converter. It converts HTML to Markdown using Nokogiri."
   spec.homepage = "https://bavmind.com"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.3.0"
+  spec.required_ruby_version = ">= 3.4.0"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.pkg.github.com/bavmind"
   spec.metadata["rubygems_mfa_required"] = "true"
